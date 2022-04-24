@@ -4,6 +4,7 @@ from PyQt6.QtGui import *
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 import sys
 import time
+x_init = 0
 class StandardItem(QStandardItem):
     def __init__(self, txt='', font_size=12, set_bold=False, color=QColor(0, 0, 0), color1=QColor(0, 0, 0)):
         super().__init__()
@@ -20,6 +21,7 @@ class Window2(QMainWindow):
     count = 0
     def __init__(self):
         super().__init__()
+        self.installEventFilter(self)
         self.quit = QAction("Quit", self)
         self.quit.triggered.connect(self.closeEvent)
         self.mdi = QMdiArea()
@@ -151,6 +153,10 @@ class Window2(QMainWindow):
         #windowLayout = QVBoxLayout(self)
         #windowLayout.addWidget(self.mdi, alignment=Qt.AlignmentFlag.AlignTop)
         self.setWindowTitle("The App System") 
+    def resizeEvent(self, event):
+                  
+           self.treeView.setFixedSize(160,self.height()-102)
+              
     def closeEvent(self, event):
         close = QMessageBox()
         close.setIcon(QMessageBox.Icon.Question)
