@@ -5,3 +5,5 @@ This is a very simple python desktop gui tempate.
 <br><b>Release Date</b>: April 19, 2022
 
 I will keep on updating this program whenever I have the time.
+
+<br><br>I made some modifiation, separated the splash screen and login screen from the mdi window and added sidebar menu on April 24, 2022.
