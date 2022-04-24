@@ -7,3 +7,7 @@ This is a very simple python desktop gui tempate.
 I will keep on updating this program whenever I have the time.
 
 <br><br>I made some modifiation, separated the splash screen and login screen from the mdi window and added sidebar menu on April 24, 2022.
+<br>Files uploaded:
+<br> splash.py - splash screen
+<br>login.py - login screen
+<br> mainw.py - MDI Window with the new sidebar menu
