@@ -14,3 +14,7 @@ I will keep on updating this program whenever I have the time.
 <br><b>mainw.py</b> - MDI Window with the new sidebar menu
 
 <br> New changes has been made pls read my blog post for details https://pythonbitsnpieces.blogspot.com/2022/05/upgrade-03-pyqt6-desktop-app-template.html
+
+<br>To run the program, at dos prompt, go to the folder where all of the project files are located(example: c:\crud\) and type python popular_app.py and press enter key.
+
+<br>I created the database mysql database using phmyadmin running under wamp64
