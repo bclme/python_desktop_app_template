@@ -12,3 +12,5 @@ I will keep on updating this program whenever I have the time.
 <br><b>splash.py</b> - splash screen
 <br><b>login.py</b> - login screen
 <br><b>mainw.py</b> - MDI Window with the new sidebar menu
+
+<br> New changes has been made pls read my blog post for details https://pythonbitsnpieces.blogspot.com/2022/05/upgrade-03-pyqt6-desktop-app-template.html
