@@ -79,25 +79,34 @@ class WindowApp(a.QMainWindow):
         else:
             event.ignore()
     def onClick_pb3(self):
-        db = mysql.connect(
+        try:
+          db = mysql.connect(
              host = config.host,
              user = config.user,
              passwd = config.passwd,
-             database = config.database
-        )
-        cursor = db.cursor()
-        t1 = self.txtusr.text()
-        t2 = self.txtpwd.text() # Appl3Tr33.456
-        #salt = b'4\xa8y\x8e\xca\xfb\x7f\x8e\xd5\x97v\x14\xc7[Z\xd0'
-        print(t2)
-        t2 = hashlib.pbkdf2_hmac("sha256", t2.encode(), config.salt, 100000)
+             database = config.database,
+             raise_on_warnings= True
+          )
+          cursor = db.cursor()
+          t1 = self.txtusr.text()
+          t2 = self.txtpwd.text() # Appl3Tr33.456
+          #salt = b'4\xa8y\x8e\xca\xfb\x7f\x8e\xd5\x97v\x14\xc7[Z\xd0'
+          #print(t2)
+          t2 = hashlib.pbkdf2_hmac("sha256", t2.encode(), config.salt, 100000)
         
-        t1 = repr(str(t1))
-        t2 = repr(str(t2))
-        print(t2)
-        query = "SELECT * FROM tbusr where username = %s and userpassword  = %s" %(t1, t2)
-        cursor.execute(query)
-        records = cursor.fetchall()
+          t1 = repr(str(t1))
+          t2 = repr(str(t2))
+          #print(t2)
+          query = "SELECT * FROM tbusr where username = %s and userpassword  = %s" %(t1, t2)
+        
+           
+          cursor.execute(query)
+          records = cursor.fetchall()   
+        except mysql.Error as e:
+            self.statusBar.showMessage("Error in MySql check connection", 5000)
+            return None
+        
+        
         df = pd.DataFrame(records) 
         count = 0
         while count < TIME_LIMIT:
