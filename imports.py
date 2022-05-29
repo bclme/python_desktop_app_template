@@ -5,6 +5,9 @@ import PyQt6 as p
 import sys as s
 import os as o
 import time as t
+import pandas as pd
+
+
 __all__ = [
-    'a', 'f', 'g', 'p', 's', 'o', 't'
+    'a', 'f', 'g', 'p', 's', 'o', 't', 'pd'
 ]
