@@ -75,12 +75,16 @@ class Window2(a.QMainWindow):
         
         self.statusBar = a.QStatusBar()
         self.setStatusBar(self.statusBar)
+        self.lbl_usr =  a.QLabel(config.gb_usr, self)
+        self.lbl_tmr = a.QLabel()
+        self.define_statusbar(self.statusBar, self.lbl_usr, self.lbl_tmr)
+        timer = f.QTimer(self) 
+        # adding action to timer
+        timer.timeout.connect(self.showTime)  
+        # update the timer every second
+        timer.start(1000)                        
         
-        self.lbl_usr =  a.QLabel(config.gb_usr, self)                
-        self.statusBar.addPermanentWidget(self.lbl_usr)
-        self.lbl_usr.move(30, 40)
-        self.lbl_usr.setStyleSheet('QLabel {background-color: transparent; color: black;}')
-        self.statusBar.showMessage(("Ready " + config.gb_usr + "!"), 5000)
+        
         menu = self.menuBar()
 
         file_menu = menu.addMenu("&File")
@@ -110,6 +114,24 @@ class Window2(a.QMainWindow):
         #windowLayout = QVBoxLayout(self)
         #windowLayout.addWidget(self.mdi, alignment=Qt.AlignmentFlag.AlignTop)
         self.setWindowTitle("The App System") 
+    def showTime(self):
+  
+        # getting current time
+        current_time = f.QTime.currentTime()
+  
+        # converting QTime object to string
+        label_time = current_time.toString('hh:mm:ss')
+  
+        # showing it to the label
+        self.lbl_tmr.setText(label_time)
+    def define_statusbar(self, sbar, slbl, lblt):
+        sbar.addPermanentWidget(slbl)
+        slbl.move(30, 40)
+        sbar.addPermanentWidget(lblt)
+        lblt.move(20, 40)
+        slbl.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        lblt.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        sbar.showMessage(("Ready " + config.gb_usr + "!"), 5000)
     def define_tree(self, tree):
         self.treeView.setHeaderHidden(True)
         
