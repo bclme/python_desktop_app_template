@@ -18,3 +18,5 @@ I will keep on updating this program whenever I have the time.
 <br>To run the program, at dos prompt, go to the folder where all of the project files are located(example: c:\crud\) and type python popular_app.py and press enter key.
 
 <br>I created the database mysql database using phmyadmin running under wamp64
+
+<br>May 31,2022: A new IDE window has been added to modify the main window without exiting entirely from the application. details of the changes is documented at this blog entry: https://pythonbitsnpieces.blogspot.com/2022/05/upgrade-04-pyqt6-desktop-app-template.html 
