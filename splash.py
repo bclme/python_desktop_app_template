@@ -1,5 +1,6 @@
 from imports import *
 from login import WindowApp
+from dev import Window_dev
 class SplashScreen(a.QWidget):
     def __init__(self, parent=None):
         super().__init__()
@@ -74,9 +75,11 @@ class SplashScreen(a.QWidget):
             self.showLogin()
         self.counter += 1
     def showLogin(self):
+        self.windowdev = Window_dev()
+        self.windowdev.show()
         self.login = WindowApp(self)
         self.login.show()    
-
+        
 if __name__ == "__main__":       
     app = a.QApplication(s.argv)
     app.setStyleSheet('''

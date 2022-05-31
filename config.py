@@ -1,3 +1,6 @@
 gb_usr = "empty"
 salt = ""
-db = ""
+host = "localhost"
+user = "root"
+passwd = ""
+database = "pop_app"

@@ -137,6 +137,7 @@ class WindowApp(a.QMainWindow):
     def showWindow2(self):
         self.mdiwindow = Window2()
         self.mdiwindow.show()
+        
     def onClick_pb4(self):
         self.quit 
         self.close()    

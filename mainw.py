@@ -1,5 +1,7 @@
 from imports import *
 from login import *
+import importlib
+#from login import WindowApp
 import mysql.connector as mysql
 import config
 import functions
@@ -70,6 +72,10 @@ class Window2(a.QMainWindow):
         exit_action.setStatusTip("Exit")
         exit_action.triggered.connect(self.onExitClick)
         exit_action.setShortcut(g.QKeySequence("Ctrl+x"))
+        logout_action = g.QAction(g.QIcon(r"c:\crud\icons\door-open-out.png"), "&Logout", self)
+        logout_action.setStatusTip("Logout")
+        logout_action.triggered.connect(self.onLogoutClick)
+        logout_action.setShortcut(g.QKeySequence("Ctrl+l"))
         toolbar1.addAction(inbox_action)
         toolbar1.addAction(inbox_action1)
         
@@ -96,6 +102,8 @@ class Window2(a.QMainWindow):
         file_submenu.addAction(inbox_action1)
         file_menu.addSeparator()
         file_menu.addAction(exit_action)
+        file_menu.addSeparator()
+        file_menu.addAction(logout_action)
         bar = self.menuBar()
 		
         file = bar.addMenu("Window")
@@ -107,6 +115,14 @@ class Window2(a.QMainWindow):
         tb.addAction("Hide Documents Toolbar")
         tb.addAction("Unhide Documents Toolbar")
         tb.triggered[g.QAction].connect(self.click)
+        tb0 = bar.addMenu("Admin")
+        tb0_sub = tb0.addMenu("Users")
+        tb0_sub.addAction("Create")
+        tb0_sub.addAction("Update")
+        tb0_sub.addAction("Display")
+        tb0_sub.addAction("Delete")
+        tb0.addAction("System Messsages")
+        tb0.triggered[g.QAction].connect(self.click)
         tb1 = bar.addMenu("System")
         tb1.addAction("About This Template")
         tb1.triggered[g.QAction].connect(self.about)
@@ -171,43 +187,7 @@ class Window2(a.QMainWindow):
                   node_name.appendRow(node_name1)
         
         rootNode.appendRow(accnt)
-        #Accounts_Payable = StandardItem(' Accounts Payable', 10, color1=g.QColor('#80aaff'))
-        #accnt.appendRow(Accounts_Payable)
-        #Vendors = StandardItem('   Vendors', 8, color=g.QColor('#3939ac'), color1=g.QColor('#b3ccff'))
-        #Incoming_Invoice = StandardItem('   Incoming Invoice', 8, color=g.QColor('#3939ac'), color1=g.QColor('#b3ccff'))
-        #Purchases = StandardItem('   Purchases', 8, color=g.QColor('#3939ac'), color1=g.QColor('#b3ccff'))
-
-        #Accounts_Payable.appendRow(Vendors)
-        #Accounts_Payable.appendRow(Incoming_Invoice)
-        #Accounts_Payable.appendRow(Purchases)
-
-
-        #texas = StandardItem(' Accounts Receivable', 10, color1=g.QColor('#80aaff'))
-        #accnt.appendRow(texas)
-
-        #austin = StandardItem('   Customers', 8, color=g.QColor('#3939ac'), color1=g.QColor('#b3ccff'))
-        #houston = StandardItem('   Outbound Invoices', 8, color=g.QColor('#3939ac'), color1=g.QColor('#b3ccff'))
-        #cali = StandardItem('   Dunning', 8, color=g.QColor('#3939ac'), color1=g.QColor('#b3ccff'))
-        #dallas = StandardItem('   Sales', 8, color=g.QColor('#3939ac'), color1=g.QColor('#b3ccff'))
-
-        #texas.appendRow(austin)
-        #texas.appendRow(houston)
-        #texas.appendRow(cali)
-        #texas.appendRow(dallas)
-
-
-        # Canada 
-        #canada = StandardItem('Logistics', 12, set_bold=True, color1=g.QColor('#4d88ff'))
-
-        #alberta = StandardItem(' Inventory', 10, color1=g.QColor('#80aaff'))
-        #bc = StandardItem(' Materials', 10, color1=g.QColor('#80aaff'))
-        #ontario = StandardItem(' Deliveries', 10, color1=g.QColor('#80aaff'))
-        #canada.appendRows([alberta, bc, ontario])
-
-
-        #rootNode.appendRow(accnt)
-        #rootNode.appendRow(canada)
-
+        
         tree.setModel(treeModel)
         tree.expandAll()
         tree.doubleClicked.connect(self.getValue)
@@ -244,8 +224,11 @@ class Window2(a.QMainWindow):
     def onClick(self, s):
         print("click",s) 
     def onExitClick(self, s):
+        
         self.quit 
-        self.close()  
+        self.close()
+    def onLogoutClick(self, s):
+        self.close()        
     def about(self, s):
         aboutm = a.QMessageBox()
         aboutm.setIcon(a.QMessageBox.Icon.Information)
@@ -265,6 +248,9 @@ class Window2(a.QMainWindow):
         sub.setWindowTitle("subwindow"+str(Window2.count))
         self.mdi.addSubWindow(sub)
         sub.show()
+    def on_text_changed(self):
+        self.sub1.pbSave.setEnabled(bool(self.sub1.txtusr.text()) and bool(self.sub1.txtnam.text()) and bool(self.sub1.txtipwd.text()))
+        
     def click(self, q):                  
         if q.text() == "Cascade":
           self.mdi.cascadeSubWindows()
@@ -277,7 +263,43 @@ class Window2(a.QMainWindow):
           self.toolbar.toggleViewAction().trigger() 
         if q.text() == "Unhide Documents Toolbar":
           self.toolbar.toggleViewAction().setChecked(False)
-          self.toolbar.toggleViewAction().trigger()          
+          self.toolbar.toggleViewAction().trigger()  
+        if q.text() == "Create":
+           self.sub1 = a.QMdiSubWindow()
+           lbl1a =  a.QLabel('Username', self.sub1)
+           lbl1a.setGeometry(25, 50, 60, 25)
+           lbl1a.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+           self.sub1.txtusr = a.QLineEdit('', self.sub1) 
+           self.sub1.txtusr.setGeometry(95, 50, 150, 25)
+           lbl1b =  a.QLabel('Name', self.sub1)
+           lbl1b.setGeometry(25, 85, 60, 25)
+           lbl1b.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+           self.sub1.txtnam = a.QLineEdit('', self.sub1) 
+           self.sub1.txtnam.setGeometry(95, 85, 200, 25)
+           lbl1c =  a.QLabel('User Group', self.sub1)
+           lbl1c.setGeometry(25, 120, 60, 25)
+           lbl1c.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+           txtgrp = a.QLineEdit('USER', self.sub1) 
+           txtgrp.setGeometry(95, 120, 100, 25)
+           txtgrp.setEnabled(False)
+           lbl1d =  a.QLabel('Password', self.sub1)
+           lbl1d.setGeometry(25, 155, 60, 25)
+           lbl1d.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+           self.sub1.txtipwd = a.QLineEdit('', self.sub1) 
+           self.sub1.txtipwd.setGeometry(95, 155, 200, 25)
+           self.sub1.txtipwd.setEchoMode(a.QLineEdit.EchoMode.Password) 
+           self.sub1.pbSave = a.QPushButton('Save', self.sub1)
+           self.sub1.pbSave.setGeometry(205, 260, 75, 25)
+           self.sub1.pbSave.setEnabled(False)
+           self.sub1.txtusr.textChanged.connect(self.on_text_changed)
+           self.sub1.txtnam.textChanged.connect(self.on_text_changed)
+           self.sub1.txtipwd.textChanged.connect(self.on_text_changed)
+           pbCanc = a.QPushButton('Cancel', self.sub1)
+           pbCanc.setGeometry(290, 260, 75, 25)
+           self.sub1.setGeometry(25, 25, 400, 300)
+           self.sub1.setWindowTitle("Create User")
+           self.mdi.addSubWindow(self.sub1)
+           self.sub1.show()        
 if __name__ == "__main__":       
     app = a.QApplication(s.argv)
  
