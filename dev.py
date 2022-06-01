@@ -49,6 +49,7 @@ class Window_dev(QWidget):
           self.stext.setPlainText(process)
            
     def onClick_pb2(self):
+        try:
           otext=self.etext.toPlainText()
           with open('mainw_tmp.py', 'w') as ff:
             ff.write(otext)    
@@ -62,7 +63,9 @@ class Window_dev(QWidget):
              importlib.reload(mainw)
              self.mdiwindow = mainw.Window2()
              self.mdiwindow.show()
-   
+        except Exception as err:
+           self.stext.setPlainText(str(err))
+           pass   
 
 
     

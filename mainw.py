@@ -6,6 +6,8 @@ import mysql.connector as mysql
 import config
 import functions
 import pdb
+import warnings
+warnings.filterwarnings('ignore')
 x_init = 0
 class StandardItem(g.QStandardItem):
     def __init__(self, txt='', font_size=12, set_bold=False, color=g.QColor(0, 0, 0), color1=g.QColor(0, 0, 0)):
@@ -29,12 +31,15 @@ class Window2(a.QMainWindow):
         self.mdi = a.QMdiArea()
         self.treeView = a.QTreeView()
         self.define_tree(self.treeView)
-        
-        self.setCentralWidget(a.QWidget(self))
-        windowLayout = a.QHBoxLayout(self)
+        widget = a.QWidget()
+        self.setCentralWidget(widget)
+        #self.setCentralWidget(a.QWidget(self))
+        windowLayout = a.QHBoxLayout(widget)
         windowLayout.addWidget(self.treeView,  )
         windowLayout.addWidget(self.mdi, alignment=f.Qt.AlignmentFlag.AlignTop)
-        self.centralWidget().setLayout(windowLayout)
+        #widget.setLayout(windowLayout)
+        
+        #self.centralWidget().setLayout(windowLayout)
         #self.setCentralWidget(self.mdi)
         
         self.toolbar = a.QToolBar("Documents")
@@ -253,7 +258,7 @@ class Window2(a.QMainWindow):
         
     def click(self, q):                  
         if q.text() == "Cascade":
-          self.mdi.cascadeSubWindows()
+           self.mdi.cascadeSubWindows()
                     
         if q.text() == "Tile":
           self.mdi.tileSubWindows()  
