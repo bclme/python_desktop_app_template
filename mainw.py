@@ -26,6 +26,11 @@ class StandardItem(g.QStandardItem):
         self.setBackground(color1)
         self.setFont(fnt)
         self.setText(txt)
+class MdiSubWindow(a.QMdiSubWindow):
+    sigClosed = f.pyqtSignal(str)
+    def closeEvent(self, event):
+        self.sigClosed.emit(self.windowTitle())
+        a.QMdiSubWindow.closeEvent(self, event)
 class Window2(a.QMainWindow):                          
     count = 0
     def __init__(self):
@@ -356,8 +361,10 @@ class Window2(a.QMainWindow):
         self.exPopup.show()
 
     def onUserclick(self, q): 
-
-        self.sub1 = a.QMdiSubWindow()
+        if config.sub_open == True:
+           return True
+        functions.update_w_open(True)
+        self.sub1 = MdiSubWindow()#a.QMdiSubWindow()
         lbl1a =  a.QLabel('Username', self.sub1)
         lbl1a.setGeometry(25, 50, 60, 25)
         lbl1a.setStyleSheet('QLabel {background-color: transparent; color: black;}')
@@ -426,7 +433,7 @@ class Window2(a.QMainWindow):
            self.sub1.setWindowTitle("Delete User")
             
         self.sub1.setGeometry(25, 25, 400, 300)
-        
+        self.sub1.sigClosed.connect(self.windowclosed)
         self.mdi.addSubWindow(self.sub1)
         self.sub1.show()  
     def click(self, q):                  
@@ -443,7 +450,11 @@ class Window2(a.QMainWindow):
           self.toolbar.toggleViewAction().setChecked(False)
           self.toolbar.toggleViewAction().trigger()  
           
-    
+    #@f.pyqtSlot(str)
+    def windowclosed(self, text):
+        print(text)
+        functions.update_w_open(False)
+        
 class searchPopup(a.QMainWindow):
     def __init__(self, name):
         super().__init__()        
@@ -550,8 +561,10 @@ class searchPopup(a.QMainWindow):
 class Delegate(a.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         if index.data() == "100":
-            return super(Delegate, self).createEditor(parent, option, index)   
+            return super(Delegate, self).createEditor(parent, option, index)
             
+ 
+        
 if __name__ == "__main__":       
     app = a.QApplication(s.argv)
  

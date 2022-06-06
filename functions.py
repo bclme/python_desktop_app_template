@@ -25,4 +25,6 @@ def update_logout(arg1):
     config.logout_ind = arg1  
     
 def update_user_crud(arg1):
-    config.user_crud = arg1      
+    config.user_crud = arg1  
+def update_w_open(arg1):
+    config.sub_open = arg1      
