@@ -1,14 +1,19 @@
-from imports import *
-from login import *
-import importlib
-#from login import WindowApp
-import mysql.connector as mysql
 import config
 import functions
+import pandas as pd
+import re
+for ind in config.df_imports.index:      
+      exec(config.df_imports[0][ind])
+from login import *
+import importlib
+
+import mysql.connector as mysql
+
 import pdb
 import warnings
 warnings.filterwarnings('ignore')
 x_init = 0
+sel_row = 0
 class StandardItem(g.QStandardItem):
     def __init__(self, txt='', font_size=12, set_bold=False, color=g.QColor(0, 0, 0), color1=g.QColor(0, 0, 0)):
         super().__init__()
@@ -127,7 +132,7 @@ class Window2(a.QMainWindow):
         tb0_sub.addAction("Display")
         tb0_sub.addAction("Delete")
         tb0.addAction("System Messsages")
-        tb0.triggered[g.QAction].connect(self.click)
+        tb0.triggered[g.QAction].connect(self.onUserclick)
         tb1 = bar.addMenu("System")
         tb1.addAction("About This Template")
         tb1.triggered[g.QAction].connect(self.about)
@@ -136,7 +141,7 @@ class Window2(a.QMainWindow):
         #windowLayout.addWidget(self.mdi, alignment=Qt.AlignmentFlag.AlignTop)
         self.setWindowTitle("The App System") 
     def showTime(self):
-  
+        global sel_row
         # getting current time
         current_time = f.QTime.currentTime()
   
@@ -145,6 +150,15 @@ class Window2(a.QMainWindow):
   
         # showing it to the label
         self.lbl_tmr.setText(label_time)
+        if sel_row != 0:
+           sel_row = sel_row - 1
+           self.sub1.txtnam.setText(config.df[2][sel_row])
+           self.sub1.txtemail.setText(config.df[4][sel_row])
+           self.sub1.txtusr.setText(config.df[1][sel_row])
+           sel_row = 0
+           if config.user_crud == 'Delete':
+              self.sub1.pbSave.setEnabled(True)
+              self.sub1.pbSave.setText(config.user_crud)
     def define_statusbar(self, sbar, slbl, lblt):
         sbar.addPermanentWidget(slbl)
         slbl.move(30, 40)
@@ -216,8 +230,14 @@ class Window2(a.QMainWindow):
 
         if close == a.QMessageBox.StandardButton.Yes:
             event.accept()
+            if config.logout_ind == True:
+               functions.update_logout(False)
+               from login import WindowApp
+               self.login = WindowApp(self)
+               self.login.show()
         else:
             event.ignore()
+            functions.update_logout(False)
     def getValue(self, val):
         print(val.data())
         print(val.row())
@@ -233,6 +253,10 @@ class Window2(a.QMainWindow):
         self.quit 
         self.close()
     def onLogoutClick(self, s):
+        functions.update_logout(True)
+        #self.login = WindowApp(self)
+        #self.login.show()
+
         self.close()        
     def about(self, s):
         aboutm = a.QMessageBox()
@@ -254,8 +278,157 @@ class Window2(a.QMainWindow):
         self.mdi.addSubWindow(sub)
         sub.show()
     def on_text_changed(self):
-        self.sub1.pbSave.setEnabled(bool(self.sub1.txtusr.text()) and bool(self.sub1.txtnam.text()) and bool(self.sub1.txtipwd.text()))
+        if config.user_crud != 'Delete': 
+         self.sub1.pbSave.setEnabled(bool(self.sub1.txtusr.text()) and bool(self.sub1.txtnam.text()) and bool(self.sub1.txtipwd.text()))
+    def on_click_usr_save(self):
         
+        usr_regex = re.search("^(?![-._])(?!.*[_.-]{2})[\w.-]{6,30}(?<![-._])$", self.sub1.txtusr.text())
+        if not usr_regex: 
+           #print(pwd_regex)
+           self.statusBar.showMessage(("Wrong User Name Required Format"), 5000)
+           return None
+        pwd_regex = re.search("^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$", self.sub1.txtipwd.text())
+        if not pwd_regex and config.user_crud == 'Create': 
+           #print(pwd_regex)
+           self.statusBar.showMessage(("Wrong Password Required Format"), 5000)
+           return None
+        email_regex = re.search("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}", self.sub1.txtemail.text())
+        if not email_regex: 
+           #print(pwd_regex)
+           self.statusBar.showMessage(("Wrong Email Format"), 5000)
+           return None
+        t1 = self.sub1.txtusr.text()   
+        t2 = self.sub1.txtipwd.text()
+        t2 = hashlib.pbkdf2_hmac("sha256", t2.encode(), config.salt, 100000)
+        #print(t2)
+        #t2 = repr(str(t2))
+        t2 =  str(t2)
+        #print(t2)
+        #t1 = repr(str(t1))
+        try:   
+           db = mysql.connect(
+             host = config.host,
+             user = config.user,
+             passwd = config.passwd,
+             database = config.database
+           )
+           cursor = db.cursor()
+        
+        
+           if config.user_crud == 'Create':
+             sql = "INSERT INTO tbusr (username, Uname, userpassword, UEmail, USRGRP) VALUES (%s, %s, %s, %s, %s)"
+             val = (t1, self.sub1.txtnam.text(), t2, self.sub1.txtemail.text(), 'USER')
+             cursor.execute(sql, val)
+           elif config.user_crud == 'Update':
+             #t1 = repr(str(t1))
+             sql = "UPDATE tbusr SET Uname = %s, UEmail = %s WHERE username = %s"
+             val = (self.sub1.txtnam.text(), self.sub1.txtemail.text(), t1)
+             cursor.execute(sql, val)
+           elif config.user_crud == 'Delete':             
+             sql = "DELETE FROM tbusr WHERE username = %s"
+             val = (t1,)
+             cursor.execute(sql, val)
+           db.commit()
+        except mysql.Error as e:
+            print(str(e))
+            self.statusBar.showMessage(str(e), 5000)
+            return None
+            
+        if config.user_crud == 'Create':
+          self.statusBar.showMessage(("User has been created!"), 5000)
+        elif config.user_crud == 'Update':
+          self.statusBar.showMessage(("User has been updated!"), 5000)
+        elif config.user_crud == 'Delete': 
+          self.statusBar.showMessage(("User has been deleted!"), 5000)        
+        self.sub1.close()
+    def on_click_canc(self):
+        self.sub1.close()
+    def on_click_Srch(self):
+        
+        self.buildSearchPopup()
+    def buildSearchPopup(self):
+        name = 'Lock Screen'
+        self.exPopup = searchPopup(name)
+        
+        #self.exPopup.setGeometry(self.pos().x()+50, self.pos().y()+75, 300, 225)
+        self.exPopup.move(self.pos().x()+75, self.pos().y()+75)
+        self.exPopup.setFixedSize(350, 400)
+        self.exPopup.show()
+
+    def onUserclick(self, q): 
+
+        self.sub1 = a.QMdiSubWindow()
+        lbl1a =  a.QLabel('Username', self.sub1)
+        lbl1a.setGeometry(25, 50, 60, 25)
+        lbl1a.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        self.sub1.txtusr = a.QLineEdit('', self.sub1) 
+        self.sub1.txtusr.setGeometry(95, 50, 150, 25)
+        
+        if q.text() != "Create":
+           
+           
+           pbSrch = a.QPushButton('...', self.sub1)
+           pbSrch.setGeometry(250, 50, 30, 25)
+           pbSrch.clicked.connect(self.on_click_Srch)
+          
+        lbl1b =  a.QLabel('Name', self.sub1) 
+        lbl1b.setGeometry(25, 85, 60, 25)
+        lbl1b.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        self.sub1.txtnam = a.QLineEdit('', self.sub1) 
+        self.sub1.txtnam.setGeometry(95, 85, 200, 25)
+        lbl1c =  a.QLabel('User Group', self.sub1)
+        lbl1c.setGeometry(25, 120, 60, 25)
+        lbl1c.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        txtgrp = a.QLineEdit('USER', self.sub1) 
+        txtgrp.setGeometry(95, 120, 100, 25)
+        txtgrp.setEnabled(False)
+        lbl1d =  a.QLabel('Password', self.sub1)
+        lbl1d.setGeometry(25, 155, 60, 25)
+        lbl1d.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        self.sub1.txtipwd = a.QLineEdit('', self.sub1) 
+        self.sub1.txtipwd.setGeometry(95, 155, 200, 25)
+        self.sub1.txtipwd.setEchoMode(a.QLineEdit.EchoMode.Password)
+        lbl1e =  a.QLabel('Email', self.sub1)
+        lbl1e.setGeometry(25, 190, 60, 25)
+        lbl1e.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        self.sub1.txtemail = a.QLineEdit('', self.sub1) 
+        self.sub1.txtemail.setGeometry(95, 190, 200, 25)
+
+        self.sub1.pbSave = a.QPushButton('Save', self.sub1)
+        self.sub1.pbSave.setGeometry(205, 260, 75, 25)
+        self.sub1.pbSave.setEnabled(False)
+        self.sub1.pbSave.clicked.connect(self.on_click_usr_save)
+        self.sub1.txtusr.textChanged.connect(self.on_text_changed)
+        self.sub1.txtnam.textChanged.connect(self.on_text_changed)
+        self.sub1.txtipwd.textChanged.connect(self.on_text_changed)
+        pbCanc = a.QPushButton('Cancel', self.sub1)
+        pbCanc.setGeometry(290, 260, 75, 25)
+        pbCanc.clicked.connect(self.on_click_canc)
+        if q.text() == "Display":
+           functions.update_user_crud("Display")
+           self.sub1.txtipwd.setEnabled(False)
+           self.sub1.txtnam.setEnabled(False)
+           self.sub1.txtemail.setEnabled(False)
+           self.sub1.setWindowTitle("Display User")
+        if q.text() == "Update":
+           functions.update_user_crud("Update")
+           self.sub1.txtipwd.setEnabled(False)
+           self.sub1.txtipwd.setText('*')
+           self.sub1.setWindowTitle("Update User")
+        if q.text() == "Create":
+           self.sub1.setWindowTitle("Create User")
+           functions.update_user_crud("Create")
+        if q.text() == "Delete":
+           functions.update_user_crud("Delete")
+           self.sub1.txtipwd.setEnabled(False)
+           self.sub1.txtnam.setEnabled(False)
+           self.sub1.txtemail.setEnabled(False)
+           self.sub1.setWindowTitle("Delete User")
+            
+        self.sub1.setGeometry(25, 25, 400, 300)
+        
+        self.mdi.addSubWindow(self.sub1)
+        self.sub1.show()  
     def click(self, q):                  
         if q.text() == "Cascade":
            self.mdi.cascadeSubWindows()
@@ -269,42 +442,116 @@ class Window2(a.QMainWindow):
         if q.text() == "Unhide Documents Toolbar":
           self.toolbar.toggleViewAction().setChecked(False)
           self.toolbar.toggleViewAction().trigger()  
-        if q.text() == "Create":
-           self.sub1 = a.QMdiSubWindow()
-           lbl1a =  a.QLabel('Username', self.sub1)
-           lbl1a.setGeometry(25, 50, 60, 25)
-           lbl1a.setStyleSheet('QLabel {background-color: transparent; color: black;}')
-           self.sub1.txtusr = a.QLineEdit('', self.sub1) 
-           self.sub1.txtusr.setGeometry(95, 50, 150, 25)
-           lbl1b =  a.QLabel('Name', self.sub1)
-           lbl1b.setGeometry(25, 85, 60, 25)
-           lbl1b.setStyleSheet('QLabel {background-color: transparent; color: black;}')
-           self.sub1.txtnam = a.QLineEdit('', self.sub1) 
-           self.sub1.txtnam.setGeometry(95, 85, 200, 25)
-           lbl1c =  a.QLabel('User Group', self.sub1)
-           lbl1c.setGeometry(25, 120, 60, 25)
-           lbl1c.setStyleSheet('QLabel {background-color: transparent; color: black;}')
-           txtgrp = a.QLineEdit('USER', self.sub1) 
-           txtgrp.setGeometry(95, 120, 100, 25)
-           txtgrp.setEnabled(False)
-           lbl1d =  a.QLabel('Password', self.sub1)
-           lbl1d.setGeometry(25, 155, 60, 25)
-           lbl1d.setStyleSheet('QLabel {background-color: transparent; color: black;}')
-           self.sub1.txtipwd = a.QLineEdit('', self.sub1) 
-           self.sub1.txtipwd.setGeometry(95, 155, 200, 25)
-           self.sub1.txtipwd.setEchoMode(a.QLineEdit.EchoMode.Password) 
-           self.sub1.pbSave = a.QPushButton('Save', self.sub1)
-           self.sub1.pbSave.setGeometry(205, 260, 75, 25)
-           self.sub1.pbSave.setEnabled(False)
-           self.sub1.txtusr.textChanged.connect(self.on_text_changed)
-           self.sub1.txtnam.textChanged.connect(self.on_text_changed)
-           self.sub1.txtipwd.textChanged.connect(self.on_text_changed)
-           pbCanc = a.QPushButton('Cancel', self.sub1)
-           pbCanc.setGeometry(290, 260, 75, 25)
-           self.sub1.setGeometry(25, 25, 400, 300)
-           self.sub1.setWindowTitle("Create User")
-           self.mdi.addSubWindow(self.sub1)
-           self.sub1.show()        
+          
+    
+class searchPopup(a.QMainWindow):
+    def __init__(self, name):
+        super().__init__()        
+        self.name = name
+        #self.setGeometry(100, 100, 300, 350)
+        self.setWindowFlags(f.Qt.WindowType.Window | f.Qt.WindowType.CustomizeWindowHint | f.Qt.WindowType.WindowStaysOnTopHint)
+        self.initUI()
+
+    def initUI(self):
+        
+        lblName = a.QLabel('Search Existing Users', self)
+        lblName.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        lblName.setGeometry(5, 5, 200, 30)
+        lblpwd =  a.QLabel('Username', self)
+        lblpwd.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        lblpwd.setGeometry(25, 50, 100, 30) 
+        txtpwd = a.QLineEdit('', self) 
+        txtpwd.setGeometry(110, 50, 150, 30) 
+        self.createTable()
+        
+        pb4 = a.QPushButton('Ok', self)
+        pb4.setGeometry(140, 365, 70, 25)
+        
+        pb4.clicked.connect(self.onClick_pb4)
+        pb5 = a.QPushButton('Cancel', self)
+        pb5.setGeometry(215, 365, 70, 25)
+        pb5.clicked.connect(self.onClick_pb4)
+        
+  
+    def onClick_pb4(self):
+                
+        self.close()
+    def createTable(self):
+          self.tableWidget = a.QTableWidget(self)
+          self.tableWidget.viewport().installEventFilter(self)
+          #self.tableWidget.installEventFilter(self)
+          #self.tableWidget.setEditTriggers(QTreeView.NoEditTriggers) 
+          self.tableWidget.setRowCount(24)
+          self.tableWidget.setColumnCount(2)
+          self.tableWidget.setFixedSize(280, 270)
+          self.tableWidget.move(25, 85)
+          self.tableWidget.setSelectionMode(a.QAbstractItemView.SelectionMode.SingleSelection)
+          self.tableWidget.SelectionBehavior(a.QAbstractItemView.SelectionBehavior.SelectRows)
+          stylesheet = "::section{Background-color:rgb(179, 179, 179);color: white; bor  der-radius:14px;}"
+          self.tableWidget.horizontalHeader().setStyleSheet(stylesheet)
+          self.tableWidget.setStyleSheet('QTableWidget {background-color: white; color: black;}')
+          delegate = Delegate(self.tableWidget)
+          self.tableWidget.setItemDelegate(delegate)
+          #text = '100'
+          #it = a.QTableWidgetItem(text)
+          #self.tableWidget.setItem(3, 1, it)        
+          try:
+            db = mysql.connect(
+              host = config.host,
+              user = config.user,
+              passwd = config.passwd,
+              database = config.database,
+              raise_on_warnings= True
+            )
+            cursor = db.cursor()                           
+            query = "SELECT * FROM tbusr "                  
+            cursor.execute(query)
+            records = cursor.fetchall()
+            functions.update_df(records)
+            for ind in config.df.index:
+               
+               v =  config.df[1][ind]
+               it = a.QTableWidgetItem(v)
+               self.tableWidget.setItem(ind, 0, it)
+               
+               vv =  config.df[2][ind]
+               it = a.QTableWidgetItem(vv)
+               self.tableWidget.setItem(ind, 1, it)
+          except mysql.Error as e:
+            self.statusBar.showMessage("Error in MySql check connection", 5000)
+            
+        
+        
+          
+          
+          self.tableWidget.setHorizontalHeaderLabels(['User', 'Name'])
+          self.tableWidget.horizontalHeader().setStretchLastSection(True)
+          self.tableWidget.verticalHeader().setStretchLastSection(True)
+        
+    def eventFilter(self, source, event):
+          global sel_row
+          #if self.tableWidget.selectedIndexes() != []:
+            
+          if event.type() == f.QEvent.Type.MouseButtonDblClick:
+                #if event.button() == QtCore.Qt.LeftButton:
+            row = self.tableWidget.currentRow()
+            col = self.tableWidget.currentColumn()
+            if self.tableWidget.item(row, col) is not None:
+                print(str(row) + " " + str(col) + " " + self.tableWidget.item(row, col).text())
+                sel_row = row + 1
+                #self.sub1.txtipwd.setText(config.df[row])
+                #Window2.mdi.sub1.txtnam.setText(config.df[row])
+                #Window2.mdi.sub1.txtemail.setText(config.df[row])
+                #Window2.mdi.sub1.txtusr.setText(config.df[row])
+                #Window2.mdi.tileSubWindows()
+                self.close()
+          return f.QObject.event(source, event)    
+  
+class Delegate(a.QStyledItemDelegate):
+    def createEditor(self, parent, option, index):
+        if index.data() == "100":
+            return super(Delegate, self).createEditor(parent, option, index)   
+            
 if __name__ == "__main__":       
     app = a.QApplication(s.argv)
  

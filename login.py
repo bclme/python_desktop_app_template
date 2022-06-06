@@ -96,7 +96,8 @@ class WindowApp(a.QMainWindow):
         
           t1 = repr(str(t1))
           t2 = repr(str(t2))
-          #print(t2)
+          print(t2)
+          print(t1)
           query = "SELECT * FROM tbusr where username = %s and userpassword  = %s" %(t1, t2)
         
            
@@ -141,7 +142,7 @@ class WindowApp(a.QMainWindow):
     def onClick_pb4(self):
         self.quit 
         self.close()    
-          
+       
 if __name__ == "__main__":       
     app = a.QApplication(s.argv)
     app.setStyleSheet('''        

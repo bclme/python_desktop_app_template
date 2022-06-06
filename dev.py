@@ -5,7 +5,9 @@ import importlib
 import sys
 import os
 from PyQt6.QtWidgets import QApplication,  QWidget, QPushButton, QTextEdit, QRadioButton, QButtonGroup
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QSyntaxHighlighter, QTextCharFormat, QPainter, QColor, QTextFormat
+
+
 class Window_dev(QWidget):
 
     def __init__(self):
@@ -23,12 +25,12 @@ class Window_dev(QWidget):
         pb2.setGeometry(5, 5, 100, 30)        
         pb2.clicked.connect(self.onClick_pb2)
         self.stext = QTextEdit(self)          
-        self.stext.setGeometry(5, 450, 890, 40)
+        self.stext.setGeometry(5, 550, 890, 40)
         self.stext.setStyleSheet('QTextEdit {background-color: white; color: black;}')
         
         
         self.etext = QTextEdit(self)      
-        self.etext.setGeometry(5, 40, 890, 400)
+        self.etext.setGeometry(5, 40, 890, 500)
         self.etext.setStyleSheet('QTextEdit {background-color: white; color: black;}')
         new_font = QFont("Courier", 9)
         self.etext.setFont(new_font)
@@ -36,9 +38,12 @@ class Window_dev(QWidget):
         self.etext.setPlainText(text)
         #self.etext.setLineWrapColumnOrWidth(256)
         self.etext.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
-        self.setGeometry(25, 45, 900, 500)
+        
+        self.setGeometry(25, 45, 900, 600)
         self.setWindowTitle('System IDE')
         self.show()
+        
+    
         
     def onClick_pb1(self):
           otext=self.etext.toPlainText()
