@@ -20,3 +20,4 @@ I will keep on updating this program whenever I have the time.
 <br>I created the database mysql database using phmyadmin running under wamp64
 
 <br>May 31,2022: A new IDE window has been added to modify the main window without exiting entirely from the application. details of the changes is documented at this blog entry: https://pythonbitsnpieces.blogspot.com/2022/05/upgrade-04-pyqt6-desktop-app-template.html 
+<br>Jun 6,2022: Added CRUD(a way to create/update/delete/display users)
