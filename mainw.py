@@ -60,13 +60,13 @@ class Window2(a.QMainWindow):
         toolbar1.setIconSize(f.QSize(30,30))
         self.addToolBar(self.toolbar)
         
-        self.new_action = g.QAction(g.QIcon(r"c:\crud\icons\document--plus.png"), "&New", self)
+        self.new_action = g.QAction(g.QIcon("document--plus.png"), "&New", self)
         self.new_action.setStatusTip("New Document")
         self.new_action.triggered.connect(self.onNewClick)
         #button_action.setCheckable(True)
         self.new_action.setShortcut(g.QKeySequence("Ctrl+p"))
       
-        chg_action = g.QAction(g.QIcon(r"c:\crud\icons\document--pencil.png"), "&Change", self)
+        chg_action = g.QAction(g.QIcon("document--pencil.png"), "&Change", self)
         chg_action.setStatusTip("Change Document")
         chg_action.triggered.connect(self.onClick)
         chg_action.setCheckable(True)
@@ -74,21 +74,21 @@ class Window2(a.QMainWindow):
         self.toolbar.addAction(chg_action)       
         
         self.addToolBar(toolbar1)
-        inbox_action = g.QAction(g.QIcon(r"c:\crud\icons\inbox--plus.png"), "&Add Message", self)
+        inbox_action = g.QAction(g.QIcon("inbox--plus.png"), "&Add Message", self)
         inbox_action.setStatusTip("Add Message")
         inbox_action.triggered.connect(self.onClick)
         inbox_action.setCheckable(True)
         inbox_action.setShortcut(g.QKeySequence("Ctrl+m"))
-        inbox_action1 = g.QAction(g.QIcon(r"c:\crud\icons\inbox--minus.png"), "&Remove Message", self)
+        inbox_action1 = g.QAction(g.QIcon("inbox--minus.png"), "&Remove Message", self)
         inbox_action1.setStatusTip("Remove Message")
         inbox_action1.triggered.connect(self.onClick)
         inbox_action1.setCheckable(True)
         inbox_action1.setShortcut(g.QKeySequence("Ctrl+n"))
-        exit_action = g.QAction(g.QIcon(r"c:\crud\icons\door-open-out.png"), "&Exit", self)
+        exit_action = g.QAction(g.QIcon("door-open-out.png"), "&Exit", self)
         exit_action.setStatusTip("Exit")
         exit_action.triggered.connect(self.onExitClick)
         exit_action.setShortcut(g.QKeySequence("Ctrl+x"))
-        logout_action = g.QAction(g.QIcon(r"c:\crud\icons\door-open-out.png"), "&Logout", self)
+        logout_action = g.QAction(g.QIcon("door-open-out.png"), "&Logout", self)
         logout_action.setStatusTip("Logout")
         logout_action.triggered.connect(self.onLogoutClick)
         logout_action.setShortcut(g.QKeySequence("Ctrl+l"))
@@ -470,11 +470,15 @@ class searchPopup(a.QMainWindow):
         lblName = a.QLabel('Search Existing Users', self)
         lblName.setStyleSheet('QLabel {background-color: transparent; color: black;}')
         lblName.setGeometry(5, 5, 200, 30)
-        lblpwd =  a.QLabel('Username', self)
-        lblpwd.setStyleSheet('QLabel {background-color: transparent; color: black;}')
-        lblpwd.setGeometry(25, 50, 100, 30) 
-        txtpwd = a.QLineEdit('', self) 
-        txtpwd.setGeometry(110, 50, 150, 30) 
+        lblusr =  a.QLabel('Username', self)
+        lblusr.setStyleSheet('QLabel {background-color: transparent; color: black;}')
+        lblusr.setGeometry(25, 50, 100, 30) 
+        self.txtusr = a.QLineEdit('', self) 
+        self.txtusr.setGeometry(90, 50, 150, 30) 
+        pbusr =  a.QPushButton('', self)
+        pbusr.setIcon(g.QIcon('magnifier-zoom.png'))
+        pbusr.setGeometry(243, 50, 40, 30)
+        pbusr.clicked.connect(self.onClick_pbusr)
         self.createTable()
         
         pb4 = a.QPushButton('Ok', self)
@@ -485,6 +489,9 @@ class searchPopup(a.QMainWindow):
         pb5.setGeometry(215, 365, 70, 25)
         pb5.clicked.connect(self.onClick_pb5)
         
+    def onClick_pbusr(self):
+        if self.txtusr.text() != '':
+           self.fill_table(self.txtusr.text())
     def onClick_pb5(self):
         self.close()
     def onClick_pb4(self):
@@ -549,6 +556,43 @@ class searchPopup(a.QMainWindow):
           self.tableWidget.horizontalHeader().setStretchLastSection(True)
           self.tableWidget.verticalHeader().setStretchLastSection(True)
         
+    def fill_table(self, username):
+        try:
+            db = mysql.connect(
+              host = config.host,
+              user = config.user,
+              passwd = config.passwd,
+              database = config.database,
+              raise_on_warnings= True
+            )
+            cursor = db.cursor()
+            if config.user_crud == 'Delete':
+              t1 = config.gb_usr            
+              query = "SELECT * FROM tbusr where username <> %s and username = %s"                  
+              val = (t1, username)
+              cursor.execute(query, val)
+            else:
+              query = "SELECT * FROM tbusr where username = %s"  
+              val = (username, )
+              cursor.execute(query, val)              
+            records = cursor.fetchall()
+            functions.update_df(records)
+            if config.df.shape[0] != 0:
+               self.tableWidget.clear()
+               self.tableWidget.setHorizontalHeaderLabels(['User', 'Name'])
+            for ind in config.df.index:
+              #if config.df[1][ind] != config.gb_usr: 
+               v =  config.df[1][ind]
+               it = a.QTableWidgetItem(v)
+               self.tableWidget.setItem(ind, 0, it)
+               
+               vv =  config.df[2][ind]
+               it = a.QTableWidgetItem(vv)
+               self.tableWidget.setItem(ind, 1, it)
+                
+        except mysql.Error as e:
+            print(str(e))
+            return None
     def eventFilter(self, source, event):
           global sel_row
           global sel_row_clk
