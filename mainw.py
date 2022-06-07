@@ -14,6 +14,7 @@ import warnings
 warnings.filterwarnings('ignore')
 x_init = 0
 sel_row = 0
+sel_row_clk = 0
 class StandardItem(g.QStandardItem):
     def __init__(self, txt='', font_size=12, set_bold=False, color=g.QColor(0, 0, 0), color1=g.QColor(0, 0, 0)):
         super().__init__()
@@ -156,6 +157,7 @@ class Window2(a.QMainWindow):
         # showing it to the label
         self.lbl_tmr.setText(label_time)
         if sel_row != 0:
+           print(sel_row)
            sel_row = sel_row - 1
            self.sub1.txtnam.setText(config.df[2][sel_row])
            self.sub1.txtemail.setText(config.df[4][sel_row])
@@ -481,11 +483,15 @@ class searchPopup(a.QMainWindow):
         pb4.clicked.connect(self.onClick_pb4)
         pb5 = a.QPushButton('Cancel', self)
         pb5.setGeometry(215, 365, 70, 25)
-        pb5.clicked.connect(self.onClick_pb4)
+        pb5.clicked.connect(self.onClick_pb5)
         
-  
+    def onClick_pb5(self):
+        self.close()
     def onClick_pb4(self):
-                
+        global sel_row_clk
+        global sel_row
+        sel_row = sel_row_clk  
+                     
         self.close()
     def createTable(self):
           self.tableWidget = a.QTableWidget(self)
@@ -514,13 +520,20 @@ class searchPopup(a.QMainWindow):
               database = config.database,
               raise_on_warnings= True
             )
-            cursor = db.cursor()                           
-            query = "SELECT * FROM tbusr "                  
-            cursor.execute(query)
+            cursor = db.cursor()
+            if config.user_crud == 'Delete':
+              t1 = config.gb_usr            
+              query = "SELECT * FROM tbusr where username <> %s"                  
+              val = (t1, )
+              cursor.execute(query, val)
+            else:
+              query = "SELECT * FROM tbusr"  
+              cursor.execute(query)
             records = cursor.fetchall()
             functions.update_df(records)
+            
             for ind in config.df.index:
-               
+              #if config.df[1][ind] != config.gb_usr: 
                v =  config.df[1][ind]
                it = a.QTableWidgetItem(v)
                self.tableWidget.setItem(ind, 0, it)
@@ -528,19 +541,17 @@ class searchPopup(a.QMainWindow):
                vv =  config.df[2][ind]
                it = a.QTableWidgetItem(vv)
                self.tableWidget.setItem(ind, 1, it)
+                
           except mysql.Error as e:
             self.statusBar.showMessage("Error in MySql check connection", 5000)
-            
-        
-        
-          
-          
+       
           self.tableWidget.setHorizontalHeaderLabels(['User', 'Name'])
           self.tableWidget.horizontalHeader().setStretchLastSection(True)
           self.tableWidget.verticalHeader().setStretchLastSection(True)
         
     def eventFilter(self, source, event):
           global sel_row
+          global sel_row_clk
           #if self.tableWidget.selectedIndexes() != []:
             
           if event.type() == f.QEvent.Type.MouseButtonDblClick:
@@ -550,14 +561,15 @@ class searchPopup(a.QMainWindow):
             if self.tableWidget.item(row, col) is not None:
                 print(str(row) + " " + str(col) + " " + self.tableWidget.item(row, col).text())
                 sel_row = row + 1
-                #self.sub1.txtipwd.setText(config.df[row])
-                #Window2.mdi.sub1.txtnam.setText(config.df[row])
-                #Window2.mdi.sub1.txtemail.setText(config.df[row])
-                #Window2.mdi.sub1.txtusr.setText(config.df[row])
-                #Window2.mdi.tileSubWindows()
                 self.close()
-          return f.QObject.event(source, event)    
-  
+              
+          if event.type() == f.QEvent.Type.MouseButtonRelease:
+             row = self.tableWidget.currentRow()
+             col = self.tableWidget.currentColumn()
+             if self.tableWidget.item(row, col) is not None:
+                sel_row_clk = row + 1
+                print(sel_row_clk)
+          return f.QObject.event(source, event)      
 class Delegate(a.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         if index.data() == "100":
